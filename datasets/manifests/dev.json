@@ -1,0 +1,5 @@
+{
+  "split": "dev",
+  "status": "not_generated",
+  "note": "Run `llm-eval prepare-data --split dev` to generate"
+}

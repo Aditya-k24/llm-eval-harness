@@ -1,0 +1,4 @@
+max_attempts: 5
+wait_min_seconds: 1
+wait_max_seconds: 60
+retry_on_status: [429, 500, 502, 503, 504]

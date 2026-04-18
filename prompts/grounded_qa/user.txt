@@ -1,0 +1,9 @@
+Source text:
+{context}
+
+Question: {question}
+
+Return a JSON object with these fields:
+- "answer": string (your answer, or empty string if abstaining)
+- "abstain": boolean (true if the source is insufficient to answer)
+- "evidence_quotes": list of 1-3 verbatim quotes from the source (empty list if abstaining)

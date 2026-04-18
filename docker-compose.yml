@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  runner:
+    build: .
+    image: llm-eval-harness
+    env_file: .env
+    volumes:
+      - ./reports:/app/reports
+      - ./datasets:/app/datasets
+    command: ["llm-eval", "run", "--split", "smoke"]
+
+  dashboard:
+    build: .
+    image: llm-eval-harness
+    env_file: .env
+    volumes:
+      - ./reports:/app/reports
+      - ./datasets:/app/datasets
+    ports:
+      - "8501:8501"
+    command: ["llm-eval", "dashboard"]
+    depends_on:
+      - runner

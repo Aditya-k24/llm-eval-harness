@@ -1,0 +1,5 @@
+{
+  "split": "smoke",
+  "status": "not_generated",
+  "note": "Run `llm-eval prepare-data --split smoke` to generate"
+}

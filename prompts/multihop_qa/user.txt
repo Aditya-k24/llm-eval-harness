@@ -1,0 +1,10 @@
+Source passages:
+{context}
+
+Question: {question}
+
+Return a JSON object with these fields:
+- "answer": string (your answer, or empty string if abstaining)
+- "abstain": boolean (true if the passages are insufficient to answer)
+- "evidence_quotes": list of 1-3 verbatim quotes from the passages (empty list if abstaining)
+- "reasoning_chain": string (brief explanation of multi-hop reasoning steps)

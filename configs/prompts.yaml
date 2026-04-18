@@ -1,0 +1,10 @@
+tasks:
+  grounded_qa:
+    template_dir: prompts/grounded_qa
+    output_schema: GroundedQAOutput
+  multihop_qa:
+    template_dir: prompts/multihop_qa
+    output_schema: MultiHopQAOutput
+  fever:
+    template_dir: prompts/fever
+    output_schema: FEVEROutput
