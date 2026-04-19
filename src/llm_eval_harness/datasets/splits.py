@@ -95,52 +95,44 @@ def build_fever_split(
     seed: int = 42,
     out_path: str | None = None,
 ) -> list[dict]:
-    """Sample n examples from FEVER dev set, balanced across labels.
+    """Sample n examples from climate_fever, balanced across labels.
 
-    Uses the copenlu/fever dataset (Parquet-backed, no legacy scripts).
-    Each example uses the claim as both context and question; the
-    evidence field is populated where available.
+    climate_fever uses the same SUPPORTS/REFUTES/NOT_ENOUGH_INFO scheme
+    as FEVER and is stored as Parquet (no legacy dataset scripts needed).
+    Label integers: 0=SUPPORTS, 1=REFUTES, 2=NOT_ENOUGH_INFO, 3=DISPUTED.
     """
     from datasets import load_dataset  # type: ignore
 
-    # copenlu/fever is stored as Parquet and avoids the deprecated script
-    ds = load_dataset("copenlu/fever", split="validation")
+    ds = load_dataset("climate_fever", split="test")
     rng = random.Random(seed)
-    label_map = {
-        "SUPPORTS": "SUPPORTED",
-        "REFUTES": "REFUTED",
-        "NOT ENOUGH INFO": "NOT_ENOUGH_INFO",
-    }
-    by_label: dict[str, list] = {"SUPPORTS": [], "REFUTES": [], "NOT ENOUGH INFO": []}
+    int_to_str = {0: "SUPPORTED", 1: "REFUTED", 2: "NOT_ENOUGH_INFO", 3: "NOT_ENOUGH_INFO"}
+    by_label: dict[int, list] = {0: [], 1: [], 2: []}
     for ex in ds:
-        label = ex.get("label", "")
-        if label in by_label:
-            by_label[label].append(ex)
+        lbl = ex.get("claim_label", -1)
+        if lbl in by_label:
+            by_label[lbl].append(ex)
 
     per_label = n // 3
     sample: list = []
-    for label, examples in by_label.items():
+    for lbl, examples in by_label.items():
         sample.extend(rng.sample(examples, min(per_label, len(examples))))
     rng.shuffle(sample)
 
     rows = []
     for ex in sample:
-        # Build a readable evidence context from the nested evidence list
-        evidence_lines: list[str] = []
-        for ev_group in ex.get("evidence", []):
-            for ev in ev_group:
-                page = ev.get("wikipedia_url", "")
-                text = ev.get("sentence", "") or ev.get("evidence_sentence", "")
-                if text:
-                    evidence_lines.append(f"[{page}] {text}" if page else text)
-        context = "\n".join(evidence_lines) if evidence_lines else ex.get("claim", "")
+        evidence_lines = [
+            f"[{ev['article']}] {ev['evidence']}"
+            for ev in ex.get("evidences", [])
+            if ev.get("evidence")
+        ]
+        context = "\n".join(evidence_lines) if evidence_lines else ex["claim"]
         rows.append(
             {
-                "id": f"fever_{ex['id']}",
+                "id": f"fever_{ex['claim_id']}",
                 "task": "fever",
                 "context": context,
                 "question": ex["claim"],
-                "gold_label": label_map.get(ex.get("label", ""), "NOT_ENOUGH_INFO"),
+                "gold_label": int_to_str.get(ex.get("claim_label", 2), "NOT_ENOUGH_INFO"),
                 "gold_evidence_quotes": [],
             }
         )

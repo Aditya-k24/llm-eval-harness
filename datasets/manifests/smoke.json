@@ -1,5 +1,12 @@
 {
   "split": "smoke",
-  "status": "not_generated",
-  "note": "Run `llm-eval prepare-data --split smoke` to generate"
+  "version": "1.0",
+  "example_count": 29,
+  "file_path": "datasets/public/smoke.jsonl",
+  "checksum": "1eb04e75bd69c0e6afd79d011a6c814bd22345f19fe58fd540f9bbfb2b801b91",
+  "tasks": [
+    "grounded_qa",
+    "multihop_qa",
+    "fever"
+  ]
 }
