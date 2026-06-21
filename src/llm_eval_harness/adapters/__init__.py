@@ -28,9 +28,23 @@ _PROVIDER_MAP = {
     "gemini": GeminiAdapter,
 }
 
+_PROVIDER_ENV = {
+    "anthropic": "ANTHROPIC_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "gemini": "GEMINI_API_KEY",
+}
+
 
 def load_adapters(config_path: str = "configs/models.yaml") -> list:
-    """Read models.yaml and instantiate one adapter per model entry."""
+    """Read models.yaml and instantiate adapters for models whose API key is set.
+
+    Models with a missing environment variable are skipped with a warning
+    rather than raising an error, so a single key is enough to run.
+    """
+    import os
+    from rich.console import Console
+
+    console = Console()
     data = yaml.safe_load(pathlib.Path(config_path).read_text())
     adapters = []
     for model_cfg in data.get("models", []):
@@ -38,8 +52,13 @@ def load_adapters(config_path: str = "configs/models.yaml") -> list:
         cls = _PROVIDER_MAP.get(provider)
         if cls is None:
             raise ValueError(f"Unknown provider '{provider}' in {config_path}")
-        # Build kwargs — remove keys not accepted by the adapter constructors
+        env_var = _PROVIDER_ENV.get(provider, "")
+        if env_var and not os.environ.get(env_var):
+            console.print(f"[yellow]Skipping {model_cfg['id']} — {env_var} not set[/yellow]")
+            continue
         kwargs = {k: v for k, v in model_cfg.items() if k not in ("provider", "display_name")}
         kwargs["model_id"] = kwargs.pop("id")
         adapters.append(cls(**kwargs))
+    if not adapters:
+        raise RuntimeError("No adapters loaded — set at least one API key in .env")
     return adapters
